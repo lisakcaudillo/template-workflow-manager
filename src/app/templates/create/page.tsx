@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { workflowPresets } from '@/data/mockData';
 import { WorkflowPreset } from '@/types';
 import { FXDATemplate } from '@/types/fxda';
@@ -14,6 +14,7 @@ type Step = 'method' | 'generate' | 'preview' | 'options' | 'workflow' | 'comple
 
 export default function CreateTemplatePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>('method');
   const [method, setMethod] = useState<CreationMethod>('ai');
   const [aiPrompt, setAiPrompt] = useState('');
@@ -25,6 +26,15 @@ export default function CreateTemplatePage() {
   // Optional workflow
   const [wantsWorkflow, setWantsWorkflow] = useState<boolean | null>(null);
   const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowPreset | null>(null);
+
+  // Check URL params and skip method selection if method is provided
+  useEffect(() => {
+    const methodParam = searchParams.get('method') as CreationMethod | null;
+    if (methodParam && ['ai', 'upload', 'scratch'].includes(methodParam)) {
+      setMethod(methodParam);
+      setStep('generate');
+    }
+  }, [searchParams]);
 
   const handleMethodSelect = (selectedMethod: CreationMethod) => {
     setMethod(selectedMethod);
