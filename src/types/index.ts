@@ -29,7 +29,8 @@ export interface Template {
   thumbnail?: string;
   documentStructure: string;
   fields: FormField[];
-  workflowPreset?: WorkflowPreset;
+  workflowPresetId?: string; // Reference to workflow, stored separately
+  hasWorkflow: boolean; // Flag to indicate if workflow is configured
   version: number;
   createdAt: string;
   updatedAt: string;
@@ -37,6 +38,7 @@ export interface Template {
   tags: string[];
   usageCount: number;
   validated: boolean;
+  fxdaDocumentId?: string; // Link to FXDA document
 }
 
 export interface TemplateMetadata {

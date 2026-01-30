@@ -73,6 +73,9 @@ export const mockTemplates: Template[] = [
     tags: ['legal', 'nda', 'employee'],
     usageCount: 45,
     validated: true,
+    workflowPresetId: 'nda-standard',
+    hasWorkflow: true,
+    fxdaDocumentId: 'fxda-001',
   },
   {
     id: 'tpl-002',
@@ -96,6 +99,9 @@ export const mockTemplates: Template[] = [
     tags: ['hr', 'hiring', 'offer'],
     usageCount: 89,
     validated: true,
+    workflowPresetId: 'hr-offer',
+    hasWorkflow: true,
+    fxdaDocumentId: 'fxda-002',
   },
   {
     id: 'tpl-003',
@@ -119,6 +125,9 @@ export const mockTemplates: Template[] = [
     tags: ['vendor', 'procurement', 'contract'],
     usageCount: 23,
     validated: true,
+    workflowPresetId: 'vendor-contract',
+    hasWorkflow: true,
+    fxdaDocumentId: 'fxda-003',
   },
   {
     id: 'tpl-004',
@@ -142,5 +151,8 @@ export const mockTemplates: Template[] = [
     tags: ['consulting', 'contractor', 'agreement'],
     usageCount: 12,
     validated: false,
+    workflowPresetId: undefined,
+    hasWorkflow: false,
+    fxdaDocumentId: 'fxda-004',
   },
 ];

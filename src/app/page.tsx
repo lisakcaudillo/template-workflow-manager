@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { mockTemplates } from '@/data/mockData';
+import { mockTemplates, workflowPresets } from '@/data/mockData';
 import { Template } from '@/types';
-import { FileText, Plus, Search, Sparkles, Upload, Clock } from 'lucide-react';
+import { FileText, Plus, Search, Sparkles, Upload, Clock, Edit, Send } from 'lucide-react';
 
 export default function Home() {
   const [templates] = useState<Template[]>(mockTemplates);
@@ -145,49 +145,100 @@ export default function Home() {
 }
 
 function TemplateCard({ template }: { template: Template }) {
+  const workflow = template.workflowPresetId 
+    ? workflowPresets.find(w => w.id === template.workflowPresetId)
+    : null;
+
   return (
-    <Link href={`/templates/${template.id}`}>
-      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden cursor-pointer h-full">
-        {/* Thumbnail */}
-        <div className="bg-gradient-to-br from-primary-50 to-primary-100 h-32 flex items-center justify-center text-5xl">
-          {template.thumbnail || '📄'}
+    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden h-full flex flex-col">
+      {/* Thumbnail */}
+      <div className="bg-gradient-to-br from-primary-50 to-primary-100 h-32 flex items-center justify-center text-5xl relative">
+        {template.thumbnail || '📄'}
+        {template.hasWorkflow && (
+          <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+            + Workflow
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-5 flex-1 flex flex-col">
+        <div className="flex items-start justify-between mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 flex-1">{template.name}</h3>
+          {template.validated && (
+            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+              ✓ Validated
+            </span>
+          )}
         </div>
 
-        {/* Content */}
-        <div className="p-5">
-          <div className="flex items-start justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 flex-1">{template.name}</h3>
-            {template.validated && (
-              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                ✓ Validated
-              </span>
-            )}
-          </div>
+        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{template.description}</p>
 
-          <p className="text-sm text-gray-600 mb-4 line-clamp-2">{template.description}</p>
-
-          {/* Workflow Badges */}
+        {/* Workflow Badges */}
+        {workflow && (
           <div className="flex flex-wrap gap-2 mb-4">
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-              {template.workflowPreset?.parties || 0} Parties
+              {workflow.parties} Parties
             </span>
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-              {template.workflowPreset?.signingOrder || 'N/A'}
+              {workflow.signingOrder}
             </span>
-            {template.workflowPreset?.requiresApproval && (
+            {workflow.requiresApproval && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                 Approval Required
               </span>
             )}
           </div>
+        )}
 
-          {/* Footer */}
+        {/* Footer */}
+        <div className="mt-auto space-y-3">
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span className="px-2 py-1 bg-gray-100 rounded">{template.category}</span>
             <span>Used {template.usageCount} times</span>
           </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                alert(`Opening "${template.name}" in Foxit Editor...\n\nIn production: Opens template in Editor Cloud for content editing. Changes are saved as new version while workflow preset remains linked.`);
+              }}
+              className="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors"
+            >
+              <Edit className="h-3 w-3" />
+              Open in Editor
+            </button>
+            
+            {template.hasWorkflow && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert(`Opening "${template.name}" in eSign with workflow...\n\nIn production: Opens eSign with pre-configured "${workflow?.name}" workflow ready to send for signatures.`);
+                }}
+                className="flex-1 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors"
+              >
+                <Send className="h-3 w-3" />
+                Open in eSign
+              </button>
+            )}
+            
+            {!template.hasWorkflow && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert(`Add workflow to "${template.name}"?\n\nIn production: Opens workflow configuration to add signing workflow to this template.`);
+                }}
+                className="flex-1 px-3 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors"
+              >
+                <Plus className="h-3 w-3" />
+                Add Workflow
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
