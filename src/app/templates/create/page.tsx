@@ -10,7 +10,7 @@ import DocumentCanvas from '@/components/DocumentCanvas';
 import { ArrowLeft, Sparkles, Upload, FileText, Wand2, CheckCircle } from 'lucide-react';
 
 type CreationMethod = 'ai' | 'upload' | 'scratch';
-type Step = 'method' | 'generate' | 'preview' | 'workflow' | 'complete';
+type Step = 'method' | 'generate' | 'preview' | 'options' | 'workflow' | 'complete';
 
 export default function CreateTemplatePage() {
   const router = useRouter();
@@ -22,7 +22,8 @@ export default function CreateTemplatePage() {
   // FXDA Template
   const [fxdaTemplate, setFxdaTemplate] = useState<FXDATemplate | null>(null);
   
-  // Workflow
+  // Optional workflow
+  const [wantsWorkflow, setWantsWorkflow] = useState<boolean | null>(null);
   const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowPreset | null>(null);
 
   const handleMethodSelect = (selectedMethod: CreationMethod) => {
@@ -60,12 +61,13 @@ export default function CreateTemplatePage() {
   };
 
   const handleSaveTemplate = () => {
-    if (!fxdaTemplate || !selectedWorkflow) return;
+    if (!fxdaTemplate) return;
     
     // In a real app, this would save to backend
     console.log('Saving template:', {
       fxda: fxdaTemplate,
       workflow: selectedWorkflow,
+      hasWorkflow: wantsWorkflow,
     });
     
     setStep('complete');
@@ -88,16 +90,16 @@ export default function CreateTemplatePage() {
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between max-w-3xl mx-auto">
-            {(['method', 'generate', 'preview', 'workflow', 'complete'] as Step[]).map((s, idx) => (
-              <div key={s} className="flex items-center">
+            {(['method', 'generate', 'preview', 'options', step === 'workflow' ? 'workflow' : null, 'complete'] as (Step | null)[]).filter(Boolean).map((s, idx) => (
+              <div key={s as string} className="flex items-center">
                 <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
                   step === s ? 'bg-primary-600 text-white' : 
-                  ['method', 'generate', 'preview', 'workflow', 'complete'].indexOf(step) > idx ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
+                  ['method', 'generate', 'preview', 'options', 'workflow', 'complete'].indexOf(step) > idx ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
                 }`}>
                   {idx + 1}
                 </div>
-                <span className="ml-2 text-sm font-medium capitalize">{s}</span>
-                {idx < 4 && <div className="w-12 h-0.5 bg-gray-300 mx-4" />}
+                <span className="ml-2 text-sm font-medium capitalize">{s as string}</span>
+                {idx < (wantsWorkflow ? 4 : 3) && <div className="w-12 h-0.5 bg-gray-300 mx-4" />}
               </div>
             ))}
           </div>
@@ -248,11 +250,76 @@ export default function CreateTemplatePage() {
                 Regenerate
               </button>
               <button
-                onClick={() => setStep('workflow')}
+                onClick={() => setStep('options')}
                 className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
               >
-                Continue to Workflow
+                Continue
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step: Options - Ask about workflow */}
+        {step === 'options' && fxdaTemplate && (
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white rounded-lg shadow-sm border p-8 space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-2">Customize Your Template</h2>
+                <p className="text-gray-600">
+                  Would you like to add a workflow configuration to this template?
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <button
+                  onClick={() => {
+                    setWantsWorkflow(true);
+                    setStep('workflow');
+                  }}
+                  className="w-full bg-white border-2 border-gray-200 rounded-lg p-6 text-left hover:border-primary-500 hover:bg-primary-50 transition-colors"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="bg-primary-100 w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="h-6 w-6 text-primary-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-1">Yes, Add Workflow</h3>
+                      <p className="text-sm text-gray-600">
+                        Apply a workflow preset to define signing order, parties, and approval requirements
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setWantsWorkflow(false);
+                    handleSaveTemplate();
+                  }}
+                  className="w-full bg-white border-2 border-gray-200 rounded-lg p-6 text-left hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="bg-gray-100 w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FileText className="h-6 w-6 text-gray-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-1">No, Save Template Only</h3>
+                      <p className="text-sm text-gray-600">
+                        Save the template now and add workflow configuration later if needed
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              <div className="flex justify-center pt-4">
+                <button
+                  onClick={() => setStep('preview')}
+                  className="text-gray-600 hover:text-gray-900 text-sm"
+                >
+                  ← Back to Preview
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -316,10 +383,10 @@ export default function CreateTemplatePage() {
 
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => setStep('preview')}
+                onClick={() => setStep('options')}
                 className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
               >
-                Back to Preview
+                Back
               </button>
               <button
                 onClick={handleSaveTemplate}
@@ -334,7 +401,7 @@ export default function CreateTemplatePage() {
         )}
 
         {/* Step: Complete */}
-        {step === 'complete' && fxdaTemplate && selectedWorkflow && (
+        {step === 'complete' && fxdaTemplate && (
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-lg shadow-sm border p-8 text-center space-y-6">
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
@@ -344,7 +411,7 @@ export default function CreateTemplatePage() {
               <div>
                 <h2 className="text-3xl font-bold mb-2 text-gray-900">Template Created Successfully!</h2>
                 <p className="text-gray-600">
-                  Your template has been generated in FXDA format with workflow preset applied
+                  Your template has been generated in FXDA format{wantsWorkflow ? ' with workflow preset applied' : ''}
                 </p>
               </div>
 
@@ -361,10 +428,18 @@ export default function CreateTemplatePage() {
                   <span className="text-gray-600">Form Fields:</span>
                   <span className="font-semibold">{fxdaTemplate.fields.length}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Workflow:</span>
-                  <span className="font-semibold">{selectedWorkflow.name}</span>
-                </div>
+                {wantsWorkflow && selectedWorkflow && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Workflow:</span>
+                    <span className="font-semibold">{selectedWorkflow.name}</span>
+                  </div>
+                )}
+                {!wantsWorkflow && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Workflow:</span>
+                    <span className="text-gray-500 italic">Not configured</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Document ID:</span>
                   <span className="font-mono text-xs">{fxdaTemplate.documentId}</span>
@@ -378,7 +453,8 @@ export default function CreateTemplatePage() {
                 <ul className="text-sm text-gray-600 text-left space-y-1 max-w-md mx-auto">
                   <li>✓ Saved to Foxit DMS with versioning</li>
                   <li>✓ Available for reuse across teams</li>
-                  <li>✓ Ready to forward to eSign with pre-configured workflow</li>
+                  {wantsWorkflow && <li>✓ Ready to forward to eSign with pre-configured workflow</li>}
+                  {!wantsWorkflow && <li>✓ Ready for workflow configuration when needed</li>}
                   <li>✓ Discoverable through template library</li>
                 </ul>
               </div>
