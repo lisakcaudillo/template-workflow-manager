@@ -3,9 +3,10 @@ import { mockTemplates } from '@/data/mockData';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const template = mockTemplates.find(t => t.id === params.id);
+  const { id } = await params;
+  const template = mockTemplates.find(t => t.id === id);
   
   if (!template) {
     return NextResponse.json({ error: 'Template not found' }, { status: 404 });
@@ -16,14 +17,15 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const body = await request.json();
   
   // In a real app, this would update the database
   const updatedTemplate = {
     ...body,
-    id: params.id,
+    id: id,
     updatedAt: new Date().toISOString(),
   };
   
@@ -32,7 +34,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // In a real app, this would delete from the database
   return NextResponse.json({ message: 'Template deleted' });

@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import Link from 'next/link';
 import { mockTemplates } from '@/data/mockData';
 import { ArrowLeft, Download, Copy, Edit, FileText, Clock, User, Tag } from 'lucide-react';
 
-export default function TemplateDetailPage({ params }: { params: { id: string } }) {
-  const template = mockTemplates.find(t => t.id === params.id);
+export default function TemplateDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const template = mockTemplates.find(t => t.id === id);
   const [activeTab, setActiveTab] = useState<'overview' | 'workflow' | 'fields'>('overview');
 
   if (!template) {

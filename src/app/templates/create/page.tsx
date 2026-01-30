@@ -133,7 +133,7 @@ export default function CreateTemplatePage() {
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Upload Document</h3>
                 <p className="text-sm text-gray-600">
-                  Upload an existing document and we'll recognize the fields
+                  Upload an existing document and we&apos;ll recognize the fields
                 </p>
               </button>
 
