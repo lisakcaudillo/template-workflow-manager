@@ -30,7 +30,7 @@ export default function DocumentCanvas({ fxdaDocument, selectedWorkflowId }: Doc
       case 'signature': return '✍️';
       case 'date': return '📅';
       case 'text': return '📝';
-      case 'checkbox': return '☐';
+      case 'checkbox': return '☑️';
       default: return '📄';
     }
   };
@@ -103,6 +103,7 @@ export default function DocumentCanvas({ fxdaDocument, selectedWorkflowId }: Doc
                   <span className="mr-1">{getFieldIcon(field.type)}</span>
                   {field.type === 'signature' && <span>Sign here</span>}
                   {field.type === 'date' && <span>Date</span>}
+                  {field.type === 'checkbox' && <span className="text-[10px]">☐</span>}
                   {field.type === 'text' && <span className="truncate px-1">{field.placeholder || field.name}</span>}
                 </div>
                 {field.required && (

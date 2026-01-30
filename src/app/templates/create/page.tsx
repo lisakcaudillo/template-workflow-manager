@@ -10,7 +10,7 @@ import DocumentCanvas from '@/components/DocumentCanvas';
 import { ArrowLeft, Sparkles, Upload, FileText, Wand2, CheckCircle } from 'lucide-react';
 
 type CreationMethod = 'ai' | 'upload' | 'scratch';
-type Step = 'method' | 'generate' | 'preview' | 'options' | 'workflow' | 'complete';
+type Step = 'method' | 'generate' | 'preview' | 'fields-option' | 'options' | 'workflow' | 'complete';
 
 export default function CreateTemplatePage() {
   const router = useRouter();
@@ -22,6 +22,10 @@ export default function CreateTemplatePage() {
   
   // FXDA Template
   const [fxdaTemplate, setFxdaTemplate] = useState<FXDATemplate | null>(null);
+  const [fxdaTemplateWithoutFields, setFxdaTemplateWithoutFields] = useState<FXDATemplate | null>(null);
+  
+  // Fields option
+  const [wantsFields, setWantsFields] = useState<boolean | null>(null);
   
   // Optional workflow
   const [wantsWorkflow, setWantsWorkflow] = useState<boolean | null>(null);
@@ -53,7 +57,13 @@ export default function CreateTemplatePage() {
       });
       
       const fxdaData: FXDATemplate = await response.json();
-      setFxdaTemplate(fxdaData);
+      
+      // Store version with fields and without
+      setFxdaTemplateWithoutFields({
+        ...fxdaData,
+        fields: [], // Version without fields
+      });
+      setFxdaTemplate(fxdaData); // Version with fields for preview
       
       // Auto-select suggested workflow
       if (fxdaData.workflowPresetId) {
@@ -99,17 +109,23 @@ export default function CreateTemplatePage() {
       {/* Progress Steps */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between max-w-3xl mx-auto">
-            {(['method', 'generate', 'preview', 'options', step === 'workflow' ? 'workflow' : null, 'complete'] as (Step | null)[]).filter(Boolean).map((s, idx) => (
+          <div className="flex items-center justify-between max-w-4xl mx-auto text-xs sm:text-sm">
+            {(['method', 'generate', 'preview', 'fields-option', 'options', step === 'workflow' ? 'workflow' : null, 'complete'] as (Step | null)[])
+              .filter((s) => {
+                if (s === 'method' && searchParams.get('method')) return false; // Skip if coming from homepage
+                if (s === 'workflow' && !wantsWorkflow) return false; // Skip if no workflow
+                return s !== null;
+              })
+              .map((s, idx, arr) => (
               <div key={s as string} className="flex items-center">
-                <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                <div className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm ${
                   step === s ? 'bg-primary-600 text-white' : 
-                  ['method', 'generate', 'preview', 'options', 'workflow', 'complete'].indexOf(step) > idx ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
+                  ['method', 'generate', 'preview', 'fields-option', 'options', 'workflow', 'complete'].indexOf(step) > idx ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
                 }`}>
                   {idx + 1}
                 </div>
-                <span className="ml-2 text-sm font-medium capitalize">{s as string}</span>
-                {idx < (wantsWorkflow ? 4 : 3) && <div className="w-12 h-0.5 bg-gray-300 mx-4" />}
+                <span className="ml-2 font-medium capitalize hidden sm:inline">{(s as string).replace('-', ' ')}</span>
+                {idx < arr.length - 1 && <div className="w-8 sm:w-12 h-0.5 bg-gray-300 mx-2 sm:mx-4" />}
               </div>
             ))}
           </div>
@@ -260,11 +276,86 @@ export default function CreateTemplatePage() {
                 Regenerate
               </button>
               <button
-                onClick={() => setStep('options')}
+                onClick={() => setStep('fields-option')}
                 className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
               >
                 Continue
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step: Fields Option - Ask about adding fields */}
+        {step === 'fields-option' && fxdaTemplate && (
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white rounded-lg shadow-sm border p-8 space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-2">Add Form Fields?</h2>
+                <p className="text-gray-600">
+                  Would you like AI to automatically add form fields (signatures, dates, text inputs, checkboxes) to your template?
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <button
+                  onClick={() => {
+                    setWantsFields(true);
+                    // Keep template with fields
+                    setStep('options');
+                  }}
+                  className="w-full bg-white border-2 border-gray-200 rounded-lg p-6 text-left hover:border-primary-500 hover:bg-primary-50 transition-colors"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="bg-primary-100 w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="h-6 w-6 text-primary-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-1">Yes, Add Form Fields</h3>
+                      <p className="text-sm text-gray-600">
+                        AI will automatically position signature fields, date fields, text inputs, and checkboxes based on your document
+                      </p>
+                      {fxdaTemplate.fields.length > 0 && (
+                        <p className="text-sm text-primary-600 mt-2 font-medium">
+                          ✓ {fxdaTemplate.fields.length} fields ready to add
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setWantsFields(false);
+                    // Use template without fields
+                    if (fxdaTemplateWithoutFields) {
+                      setFxdaTemplate(fxdaTemplateWithoutFields);
+                    }
+                    setStep('options');
+                  }}
+                  className="w-full bg-white border-2 border-gray-200 rounded-lg p-6 text-left hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="bg-gray-100 w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FileText className="h-6 w-6 text-gray-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-1">No, Skip Form Fields</h3>
+                      <p className="text-sm text-gray-600">
+                        Keep the template as a plain document without interactive form fields
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              <div className="flex justify-center pt-4">
+                <button
+                  onClick={() => setStep('preview')}
+                  className="text-gray-600 hover:text-gray-900 text-sm"
+                >
+                  ← Back to Preview
+                </button>
+              </div>
             </div>
           </div>
         )}

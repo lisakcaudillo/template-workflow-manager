@@ -118,7 +118,7 @@ function generateFXDAFields(prompt: string): FXDAField[] {
       type: 'text',
       name: `${partyLabel} Party Name`,
       x: 50,
-      y: fieldY - (i - 1) * 120,
+      y: fieldY - (i - 1) * 140,
       width: 250,
       height: 30,
       page: 1,
@@ -135,7 +135,7 @@ function generateFXDAFields(prompt: string): FXDAField[] {
       type: 'text',
       name: `${partyLabel} Party Title/Company`,
       x: 320,
-      y: fieldY - (i - 1) * 120,
+      y: fieldY - (i - 1) * 140,
       width: 240,
       height: 30,
       page: 1,
@@ -152,7 +152,7 @@ function generateFXDAFields(prompt: string): FXDAField[] {
       type: 'signature',
       name: `${partyLabel} Party Signature`,
       x: 50,
-      y: fieldY - 40 - (i - 1) * 120,
+      y: fieldY - 40 - (i - 1) * 140,
       width: 200,
       height: 50,
       page: 1,
@@ -168,7 +168,7 @@ function generateFXDAFields(prompt: string): FXDAField[] {
       type: 'date',
       name: `Date Signed`,
       x: 270,
-      y: fieldY - 40 - (i - 1) * 120,
+      y: fieldY - 40 - (i - 1) * 140,
       width: 150,
       height: 30,
       page: 1,
@@ -177,6 +177,24 @@ function generateFXDAFields(prompt: string): FXDAField[] {
       fontSize: 12,
       fontFamily: 'Arial',
     });
+    
+    // Add checkboxes for NDA or agreements with acceptance clauses
+    if (lowerPrompt.includes('nda') || lowerPrompt.includes('agree') || lowerPrompt.includes('accept')) {
+      fields.push({
+        id: `party${i}_accept`,
+        type: 'checkbox',
+        name: `${partyLabel} Party Acceptance`,
+        x: 450,
+        y: fieldY - 40 - (i - 1) * 140,
+        width: 20,
+        height: 20,
+        page: 1,
+        required: true,
+        party: i,
+        fontSize: 12,
+        fontFamily: 'Arial',
+      });
+    }
   }
   
   // Add effective date field at top
@@ -194,6 +212,23 @@ function generateFXDAFields(prompt: string): FXDAField[] {
     fontSize: 12,
     fontFamily: 'Arial',
   });
+  
+  // Add optional checkboxes for common agreement elements
+  if (lowerPrompt.includes('confidential') || lowerPrompt.includes('nda')) {
+    fields.push({
+      id: 'confirm_read',
+      type: 'checkbox',
+      name: 'I confirm I have read and understand this agreement',
+      x: 50,
+      y: 400,
+      width: 20,
+      height: 20,
+      page: 1,
+      required: true,
+      fontSize: 12,
+      fontFamily: 'Arial',
+    });
+  }
   
   return fields;
 }
