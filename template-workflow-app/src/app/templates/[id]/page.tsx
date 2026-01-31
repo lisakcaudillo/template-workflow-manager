@@ -2,13 +2,18 @@
 
 import { useState, use } from 'react';
 import Link from 'next/link';
-import { mockTemplates } from '@/data/mockData';
+import { mockTemplates, workflowPresets } from '@/data/mockData';
 import { ArrowLeft, Download, Copy, Edit, FileText, Clock, User, Tag } from 'lucide-react';
 
 export default function TemplateDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const template = mockTemplates.find(t => t.id === id);
   const [activeTab, setActiveTab] = useState<'overview' | 'workflow' | 'fields'>('overview');
+
+  // Get workflow preset if template has one
+  const workflowPreset = template?.workflowPresetId 
+    ? workflowPresets.find(w => w.id === template.workflowPresetId)
+    : undefined;
 
   if (!template) {
     return (
@@ -122,38 +127,38 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                 )}
 
-                {activeTab === 'workflow' && template.workflowPreset && (
+                {activeTab === 'workflow' && workflowPreset && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="border border-gray-200 rounded-lg p-4">
                         <div className="text-sm text-gray-500 mb-1">Workflow Preset</div>
-                        <div className="font-semibold">{template.workflowPreset.name}</div>
+                        <div className="font-semibold">{workflowPreset.name}</div>
                       </div>
                       <div className="border border-gray-200 rounded-lg p-4">
                         <div className="text-sm text-gray-500 mb-1">Number of Parties</div>
-                        <div className="font-semibold">{template.workflowPreset.parties}</div>
+                        <div className="font-semibold">{workflowPreset.parties}</div>
                       </div>
                       <div className="border border-gray-200 rounded-lg p-4">
                         <div className="text-sm text-gray-500 mb-1">Signing Order</div>
-                        <div className="font-semibold capitalize">{template.workflowPreset.signingOrder}</div>
+                        <div className="font-semibold capitalize">{workflowPreset.signingOrder}</div>
                       </div>
                       <div className="border border-gray-200 rounded-lg p-4">
                         <div className="text-sm text-gray-500 mb-1">Security Level</div>
-                        <div className="font-semibold capitalize">{template.workflowPreset.securityLevel}</div>
+                        <div className="font-semibold capitalize">{workflowPreset.securityLevel}</div>
                       </div>
                       <div className="border border-gray-200 rounded-lg p-4">
                         <div className="text-sm text-gray-500 mb-1">Reminder Frequency</div>
-                        <div className="font-semibold">Every {template.workflowPreset.reminderDays} days</div>
+                        <div className="font-semibold">Every {workflowPreset.reminderDays} days</div>
                       </div>
                       <div className="border border-gray-200 rounded-lg p-4">
                         <div className="text-sm text-gray-500 mb-1">Expiration</div>
-                        <div className="font-semibold">{template.workflowPreset.expirationDays} days</div>
+                        <div className="font-semibold">{workflowPreset.expirationDays} days</div>
                       </div>
                     </div>
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <p className="text-sm text-gray-600">{template.workflowPreset.description}</p>
+                      <p className="text-sm text-gray-600">{workflowPreset.description}</p>
                     </div>
-                    {template.workflowPreset.requiresApproval && (
+                    {workflowPreset.requiresApproval && (
                       <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                         <div className="font-semibold text-orange-900 mb-1">⚠️ Approval Required</div>
                         <p className="text-sm text-orange-800">
